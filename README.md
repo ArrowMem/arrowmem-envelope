@@ -56,7 +56,8 @@ file, MIT.
 
 ## Legal reading
 
-United States, 47 CFR 97.113(a)(4) (text confirmed against the LII mirror, eCFR not yet):
+United States, 47 CFR 97.113(a)(4) (quoted in these terms by the FCC itself in enforcement
+advisory DA 24-1122, 2024-11-04; 97.309 read in full on eCFR):
 prohibits "messages encoded for the purpose of obscuring their meaning." A detached
 signature over an unmodified plaintext frame obscures nothing; the text is exactly as
 readable as before. A novel envelope is an unspecified digital code under 97.309(b), which
@@ -125,3 +126,9 @@ Python:
 
 arrowenvelope comes from ArrowMem, a private assistant that runs on your own hardware.
 arrowmem.ca
+
+## Credits
+
+Built by ArrowMem Inc. with Claude (Anthropic) as the coding collaborator. Reviewed adversarially by a second
+model session that did not write it, and verified on a second machine that did not build it. Issues and pull
+requests welcome.
