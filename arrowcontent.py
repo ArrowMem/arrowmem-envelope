@@ -43,8 +43,13 @@ def build_reference(corpus: bytes, content: bytes) -> bytes:
 
 
 def parse_reference(frame: bytes) -> tuple[bytes, bytes]:
-    """Returns (corpus_id, object_id). Does not resolve content; that needs a local index."""
-    if len(frame) != REFERENCE_LEN or frame[:1] != REFERENCE:
+    """Returns (corpus_id, object_id). Does not resolve content; that needs a local index.
+    0x03 is fixed length, so any bytes past REFERENCE_LEN must be an all-zero pad tail (a
+    fixed frame length chosen per link, SPEC-CONTENT.md "Padding"); anything else is refused."""
+    if len(frame) < REFERENCE_LEN or frame[:1] != REFERENCE:
+        raise ContentError("not a reference frame")
+    tail = frame[REFERENCE_LEN:]
+    if tail and tail != b"\x00" * len(tail):
         raise ContentError("not a reference frame")
     return frame[1:1 + ID_LEN], frame[1 + ID_LEN:REFERENCE_LEN]
 
@@ -75,7 +80,11 @@ def build_compressed(dictionary: bytes, plaintext: bytes) -> bytes:
 def decode_compressed(frame: bytes, dictionaries: dict[bytes, bytes], cap: int = INFLATE_CAP) -> bytes:
     """dictionaries: dictionary id -> dictionary bytes, the ids this receiver holds. Any valid
     deflate stream must decode, not only bytes produced by this encoder (deterministic per
-    zlib version and inputs, but a decoder accepts any conforming stream)."""
+    zlib version and inputs, but a decoder accepts any conforming stream).
+
+    0x04 has no fixed length: the deflate stream has its own end-of-stream marker, so any
+    bytes after it (a pad tail to a fixed frame length, SPEC-CONTENT.md "Padding") MUST be
+    all 0x00. A non-zero tail is refused as `bad inflate`, never silently accepted."""
     if len(frame) < 1 + ID_LEN or frame[:1] != COMPRESSED:
         raise ContentError("not a compressed frame")
     did = frame[1:1 + ID_LEN]
@@ -91,6 +100,8 @@ def decode_compressed(frame: bytes, dictionaries: dict[bytes, bytes], cap: int =
         raise ContentError("bad inflate") from None
     if len(out) > cap or do.unconsumed_tail:
         raise ContentError("too long")
+    if do.unused_data and do.unused_data != b"\x00" * len(do.unused_data):
+        raise ContentError("bad inflate")
     return bytes(out)
 
 
@@ -106,6 +117,11 @@ def build_holds(any_id: bytes) -> bytes:
 
 
 def parse_holds(frame: bytes) -> bytes:
-    if len(frame) != HOLDS_LEN or frame[:1] != HOLDS:
+    """0x05 is fixed length; bytes past HOLDS_LEN must be an all-zero pad tail, same rule
+    as 0x03 (SPEC-CONTENT.md "Padding")."""
+    if len(frame) < HOLDS_LEN or frame[:1] != HOLDS:
+        raise ContentError("not a holds frame")
+    tail = frame[HOLDS_LEN:]
+    if tail and tail != b"\x00" * len(tail):
         raise ContentError("not a holds frame")
     return frame[1:HOLDS_LEN]

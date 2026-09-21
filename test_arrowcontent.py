@@ -36,6 +36,13 @@ class ReferenceTest(unittest.TestCase):
         with self.assertRaisesRegex(ac.ContentError, "not a reference frame"):
             ac.parse_reference(b"\x04" + bytes(40))  # wrong type byte, right length
 
+    def test_zero_tail_accepted_as_padding_nonzero_tail_refused(self):
+        frame = ac.build_reference(DICTIONARY, PLAINTEXT)
+        cid, oid = ac.parse_reference(frame + b"\x00" * 20)  # padded to a fixed 61-byte frame
+        self.assertEqual((cid, oid), ac.parse_reference(frame))
+        with self.assertRaisesRegex(ac.ContentError, "not a reference frame"):
+            ac.parse_reference(frame + b"\x00" * 19 + b"\x01")
+
 
 class CompressedTest(unittest.TestCase):
     def test_round_trip(self):
@@ -82,6 +89,21 @@ class CompressedTest(unittest.TestCase):
         raw = co.compress(PLAINTEXT) + co.flush()
         frame = ac.COMPRESSED + did + raw
         self.assertEqual(ac.decode_compressed(frame, {did: DICTIONARY}), PLAINTEXT)
+
+    def test_red_nonzero_tail_after_complete_stream_is_bad_inflate(self):
+        # RED FIRST: a decoder that stops checking once the deflate stream itself is valid,
+        # and ignores any bytes left over after it, would silently accept an attacker's
+        # arbitrary trailing bytes as harmless padding. They are not padding unless they are
+        # all zero (SPEC-CONTENT.md "Padding"): a non-zero tail must be refused.
+        frame = ac.build_compressed(DICTIONARY, PLAINTEXT)
+        with self.assertRaisesRegex(ac.ContentError, "bad inflate"):
+            ac.decode_compressed(frame + b"\x01", {ac.content_id(DICTIONARY): DICTIONARY})
+
+    def test_zero_tail_after_complete_stream_is_accepted_as_padding(self):
+        frame = ac.build_compressed(DICTIONARY, PLAINTEXT)
+        did = ac.content_id(DICTIONARY)
+        padded = frame + b"\x00" * 12  # pads a real frame up to a fixed per-link length
+        self.assertEqual(ac.decode_compressed(padded, {did: DICTIONARY}), PLAINTEXT)
 
     def test_each_chunk_independent_not_one_running_stream(self):
         # research section 5 / FLAMP: losing one compressed frame must not lose the next.
@@ -131,6 +153,13 @@ class HoldsTest(unittest.TestCase):
         with self.assertRaisesRegex(ac.ContentError, "not a holds frame"):
             ac.parse_holds(b"\x03" + bytes(8))  # wrong type byte, right length
 
+    def test_zero_tail_accepted_nonzero_tail_refused(self):
+        cid = ac.content_id(DICTIONARY)
+        frame = ac.build_holds(cid)
+        self.assertEqual(ac.parse_holds(frame + b"\x00" * 5), cid)
+        with self.assertRaisesRegex(ac.ContentError, "not a holds frame"):
+            ac.parse_holds(frame + b"\x00\x01")
+
 
 class SpecVectorTest(unittest.TestCase):
     def test_vector_bytes_are_in_spec(self):
@@ -143,6 +172,14 @@ class SpecVectorTest(unittest.TestCase):
         self.assertIn(frame_compressed.hex(), spec)
         self.assertIn(frame_reference.hex(), spec)
         self.assertIn(frame_holds.hex(), spec)
+
+    def test_padded_vector_decodes_to_the_same_plaintext(self):
+        spec = (HERE / "SPEC-CONTENT.md").read_text(encoding="utf-8")
+        frame_compressed = ac.build_compressed(DICTIONARY, PLAINTEXT)
+        padded = frame_compressed + b"\x00" * 8  # 21-byte fixed frame, matches the spec vector
+        self.assertIn(padded.hex(), spec)
+        did = ac.content_id(DICTIONARY)
+        self.assertEqual(ac.decode_compressed(padded, {did: DICTIONARY}), PLAINTEXT)
 
     def test_deterministic_same_bytes_same_output(self):
         self.assertEqual(ac.build_compressed(DICTIONARY, PLAINTEXT),

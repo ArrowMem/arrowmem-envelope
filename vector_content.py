@@ -21,12 +21,14 @@ frame_holds = ac.build_holds(ac.content_id(dictionary))
 frame_compressed = ac.build_compressed(dictionary, plaintext)
 frame_reference = ac.build_reference(dictionary, plaintext)  # dictionary doubles as the corpus here
 envelope = ae.seal(sk, frame_compressed)
+frame_compressed_padded = frame_compressed + b"\x00" * 8  # padded to a fixed 21-byte frame
 
 for name, value in [
     ("dictionary bytes", dictionary),
     ("dictionary id", ac.content_id(dictionary)),
     ("plaintext", plaintext),
     ("0x04 dictionary-compressed frame", frame_compressed),
+    ("0x04 frame padded to a fixed length", frame_compressed_padded),
     ("0x03 content-reference frame", frame_reference),
     ("0x05 holds frame", frame_holds),
     ("0x04 frame sealed in an envelope (RFC 8032 test key)", envelope),

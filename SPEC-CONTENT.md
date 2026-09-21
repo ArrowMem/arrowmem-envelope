@@ -96,6 +96,41 @@ and it is what keeps the format interoperable with a receiver that never adopts 
 receiver simply never announces, so it is never sent a compressed or reference frame, and
 sees ordinary readable text exactly as it does today.
 
+## Padding
+
+A content frame MAY be followed by trailing `0x00` bytes up to a fixed frame length chosen
+per link (SIGNED_BEACON_PRIVACY_LAYERS_2026-09-20.md layer 1.3: fixed-size frames remove the
+message-length signal, the cheapest traffic-analysis input there is; padding obscures no
+meaning, only length, so it stays inside the legal ceiling). A decoder MUST accept and
+discard trailing `0x00` after a complete frame.
+
+- **0x03 and 0x05 are fixed length** (41 and 9 bytes), so the pad tail is exactly the bytes
+  past that fixed length: `parse_reference` and `parse_holds` accept any length at or above
+  the frame's own length, and require every byte past it to be `0x00`. A single non-zero
+  byte anywhere in the tail is refused with the frame's own "not a reference frame" or "not
+  a holds frame" error, the same error an under-length or wrong-type frame gets, because
+  a non-zero tail is not this frame at all.
+- **0x04 has no fixed length of its own**: the deflate stream carries its own end-of-stream
+  marker (RFC 1951), so the decoder already knows where the real content ends without being
+  told a frame length. Any bytes after that marker MUST be all `0x00`; anything else is
+  `bad inflate`, not silently accepted as padding and not silently discarded. This is the
+  same decoder error a corrupt or truncated stream gets, because from the decoder's side a
+  non-zero tail IS corruption: nothing in the format distinguishes "attacker's bytes" from
+  "operator's padding" except that padding is required to be zero.
+
+Padding is a sender's choice per link (how much air time to spend flattening the length
+signal against how much air time padding itself costs, both are per-link operator
+decisions); nothing in this spec picks a frame length. A sender that does not pad emits
+frames exactly as long as their content, precisely as before this section existed.
+
+Plain text (outside these three frame types, e.g. the fallback rule's unsealed text) is
+padded with trailing spaces, not trailing newlines: a trailing newline can be read as
+starting a new line of content, where a trailing space cannot change what a reader sees.
+This spec's own chunk-reassembly guarantee (concatenating parts, stripped of their `[k/K]`
+prefix, reproduces the original text exactly) is defined over the UNPADDED chunks; padding
+is applied after that identity holds, as a separate wire-only step, so it does not weaken
+that guarantee.
+
 ## The dictionary artifact
 
 Built deterministically from the four ERP pack content files, concatenated in a fixed
@@ -161,6 +196,8 @@ the code produces, so this file cannot drift from the implementation.
       616c6c206f6b2e206e65787420636865636b2030393030
     0x04 dictionary-compressed frame, 13 bytes
       047abee4440de73529c3210c00
+    0x04 frame padded to a fixed length, 21 bytes
+      047abee4440de73529c3210c000000000000000000
     0x03 content-reference frame, 41 bytes
       037abee4440de735291aa8fbc280d2e0934e9a9d9a30e57396d7ebf446e5a7b5fc721a9198d8e3ab0a
     0x05 holds frame, 9 bytes
