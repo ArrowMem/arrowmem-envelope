@@ -113,14 +113,28 @@ Python:
     env = ae.seal(sk, b"all ok")
     ae.open(env, {ae.key_id(pk): pk})   # b"all ok", or raises ae.EnvelopeError
 
+## arrowcontent: fewer frames for a reply the receiver already holds
+
+`SPEC-CONTENT.md` defines three more frame types that ride as an arrowenvelope's payload:
+a content reference (send two hashes, not the text, when the receiver already holds the
+content), a dictionary-compressed frame (deflate against a published, content-addressed
+corpus, for content the receiver does not already hold), and a holds announcement (the
+advertise-before-compress fallback rule that keeps a non-adopting receiver on plain text).
+Always verify the envelope before decoding a content frame; never inflate unverified input.
+See `SPEC-CONTENT.md` for the wire format, the legal reading, and the measured cost numbers.
+
 ## Files
 
 - `arrowenvelope.py`: the module and the CLI. Python 3.10+, depends on `cryptography` only.
 - `SPEC.md`: exact byte layout, verification order, worked example vector.
 - `vector.py`: prints the example vector so a C or Rust port can test against it.
+- `arrowcontent.py`: the content-reference, dictionary-compressed and holds frame types.
+  Python 3.10+, stdlib only (`zlib`, `hashlib`).
+- `SPEC-CONTENT.md`: wire format, dictionary construction, cost numbers, legal reading.
+- `vector_content.py`: prints the arrowcontent example vectors.
 - `examples/crosstalk_hook.py`: where seal and open go in a crosstalk-shaped bridge. A
   sketch, not a working plugin.
-- `test_arrowenvelope.py`: `python -m unittest -v`.
+- `test_arrowenvelope.py`, `test_arrowcontent.py`: `python -m unittest -v`.
 
 ## Origin
 
