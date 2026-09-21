@@ -180,7 +180,9 @@ the general one.
 
 The vectors in this file use a tiny, self-contained dictionary instead of the ERP pack, so
 a port can check its bytes with no pack checkout: SPEC.md's own example shout, repeated 4
-times.
+times. The vector dictionary is also the vector corpus, so the 0x03 and 0x05 frames below
+carry the same 8-byte id as the 0x04 frame, and the 0x03 object id is SHA-256 of the
+plaintext.
 
     dictionary bytes, 164 bytes
       6e6f20696e7465726e657420686572652e20616c6c206f6b2e206e65787420636865636b20303930306e6f20696e7465726e657420686572652e20616c6c206f6b2e206e65787420636865636b20303930306e6f20696e7465726e657420686572652e20616c6c206f6b2e206e65787420636865636b20303930306e6f20696e7465726e657420686572652e20616c6c206f6b2e206e65787420636865636b2030393030
