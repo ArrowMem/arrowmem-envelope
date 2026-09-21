@@ -269,9 +269,14 @@ than by trusting a filename or a version number. That is why, in our reading, th
 "encoded for the purpose of obscuring meaning" under 47 CFR 97.113(a)(4), and is a "code or
 cipher that is not secret" under SOR/96-484 s.47(b). This is our own direct reading of the
 statutory text, not a regulator's ruling on this exact scheme; see SIGNED_BEACON_PRIVACY
-LAYERS_2026-09-20.md section 1 and the research report for the full citation trail,
-including FCC RM-11831 (2019), which is the closest existing test of "compression is not
-encryption" on amateur bands and resolved without adopting a transparency requirement. **A
+LAYERS_2026-09-20.md section 1 and the research report for the full citation trail. For
+the record: a 2019 petition (RM-11831) proposed requiring digital protocols on amateur bands
+to be publicly documented and monitorable with freely available software; the operator of
+the largest amateur HF mail system opposed it; the FCC's November 2023 Report and Order (FCC
+23-93) removed the symbol-rate limit and set a 2.8 kHz bandwidth cap without changing any
+operating rule and without mentioning that petition or compression at all. We found no
+Commission ruling on that petition, so no regulatory test of compression on amateur bands
+is claimed here. **A
 SECRET dictionary would fail this reading entirely**; publishing the corpus and its build
 order in this file is not incidental, it is the reason the reading holds.
 
