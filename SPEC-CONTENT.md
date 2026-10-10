@@ -22,7 +22,7 @@ envelope's job (SPEC.md); these frames are its payload.
 - Corpus id: the first 8 bytes of SHA-256 of the dictionary/corpus artifact's exact bytes
   (see "The dictionary artifact" below for how that artifact is built).
 - Object id: SHA-256 of the exact content bytes, the same object id rule SPEC.md already
-  uses for the envelope payload (R-332 invariant 1).
+  uses for the envelope payload (invariant 1).
 
 A receiver that holds the corpus named by the corpus id, and a local index from object id
 to content built from that corpus, renders the content locally: no bytes of the reply ever
@@ -99,7 +99,7 @@ sees ordinary readable text exactly as it does today.
 ## Padding
 
 A content frame MAY be followed by trailing `0x00` bytes up to a fixed frame length chosen
-per link (SIGNED_BEACON_PRIVACY_LAYERS_2026-09-20.md layer 1.3: fixed-size frames remove the
+per link (fixed-size frames remove the
 message-length signal, the cheapest traffic-analysis input there is; padding obscures no
 meaning, only length, so it stays inside the legal ceiling). A decoder MUST accept and
 discard trailing `0x00` after a complete frame.
@@ -268,8 +268,7 @@ obtain, the named dictionary bytes, and the dictionary's identity is provable by
 than by trusting a filename or a version number. That is why, in our reading, this is not
 "encoded for the purpose of obscuring meaning" under 47 CFR 97.113(a)(4), and is a "code or
 cipher that is not secret" under SOR/96-484 s.47(b). This is our own direct reading of the
-statutory text, not a regulator's ruling on this exact scheme; see SIGNED_BEACON_PRIVACY
-LAYERS_2026-09-20.md section 1 and the research report for the full citation trail. For
+statutory text, not a regulator's ruling on this exact scheme. For
 the record: a 2019 petition (RM-11831) proposed requiring digital protocols on amateur bands
 to be publicly documented and monitorable with freely available software; the operator of
 the largest amateur HF mail system opposed it; the FCC's November 2023 Report and Order (FCC

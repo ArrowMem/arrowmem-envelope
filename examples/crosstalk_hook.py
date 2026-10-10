@@ -35,8 +35,8 @@ known: dict[bytes, bytes] = {}      # key id -> public key, from announce frames
 signs: dict[str, bytes] = {}        # ORIGIN call sign -> first key id announced under it (known_hosts shape)
 mismatched: set[str] = set()        # ORIGIN call signs that have announced a second, different key
 seen: set[bytes] = set()            # sha256 of every envelope delivered; that set is the whole replay guard
-# ponytail: unbounded tables, fine at one shout per 15 s; bound them if a station runs for months
-# ponytail: ORIGIN is unsigned, so announcing or replaying a key under any call sign still
+# note: unbounded tables, fine at one shout per 15 s; bound them if a station runs for months
+# note: ORIGIN is unsigned, so announcing or replaying a key under any call sign still
 # binds, or flags mismatched, that call sign; TOFU cannot see the forgery. Identity is the
 # verified key id, never ORIGIN: a sealed frame that verifies is always delivered with
 # signer=key id. The call sign's bound key is advisory only (bound, unbound, mismatch) and

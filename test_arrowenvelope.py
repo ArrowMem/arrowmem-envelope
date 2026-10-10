@@ -215,11 +215,11 @@ class HookTest(unittest.TestCase):
         self.assertEqual(self.delivered[-1], ("VE3BBB", "VE3BBB all ok, second check", None, None))
 
     def test_attacker_prebinds_call_sign_victim_seal_still_reports_victim_key(self):
-        # Regression for the TOFU ruling: the attacker announces their own key under the
+        # Regression for the TOFU rule: the attacker announces their own key under the
         # VICTIM's call sign first, winning the bind. The victim's own later announce for
         # that call sign is recorded as a mismatch, not refused, not rebound. When the
         # attacker seals under that call sign, TOFU-first-seen reads it as "bound" (the
-        # inversion this ruling accepts: a call sign binding is metadata, not trust).
+        # inversion this rule accepts: a call sign binding is metadata, not trust).
         # When the victim seals, the hook still reports signer=victim key id, never the
         # attacker's, with the call sign correctly flagged mismatch: the attacker is never
         # reported as a verified holder of the victim's key.

@@ -31,7 +31,7 @@ def content_id(data: bytes) -> bytes:
 
 
 def object_id(content: bytes) -> bytes:
-    """Full 32-byte SHA-256 of the exact content bytes (R-332 invariant 1)."""
+    """Full 32-byte SHA-256 of the exact content bytes (invariant 1)."""
     return hashlib.sha256(content).digest()
 
 

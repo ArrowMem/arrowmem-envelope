@@ -97,7 +97,7 @@ def parse_announce(frame: bytes) -> bytes:
     if len(frame) != 33 or frame[:1] != ANNOUNCE:
         raise EnvelopeError("not an announce frame")
     pk = _check_pk(frame[1:])
-    # ponytail: from_public_bytes does not reject a non-point in cryptography 50.0.0
+    # note: from_public_bytes does not reject a non-point in cryptography 50.0.0
     # (measured: y=2, which has no valid x, loads without error). Kept as the asked-for
     # check; the control that actually holds is verify(), which raises InvalidSignature
     # under any non-point key. Upgrade path: decompress and check the curve equation.
@@ -113,7 +113,7 @@ def parse_announce(frame: bytes) -> bytes:
 # raw 32 bytes the wire carries. Different lengths, so every entry point that takes one
 # refuses the other: a private file is never announced, a public file never signs.
 def save_key(private_key: Ed25519PrivateKey, path) -> None:
-    # ponytail: 0600 is advisory on Windows, where NTFS ACLs inherit from the folder.
+    # note: 0600 is advisory on Windows, where NTFS ACLs inherit from the folder.
     flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0)
     with os.fdopen(os.open(path, flags, 0o600), "wb") as f:
         f.write(private_key.private_bytes(Encoding.DER, PrivateFormat.PKCS8, NoEncryption()))
